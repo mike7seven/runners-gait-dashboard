@@ -1,0 +1,512 @@
+# Building the React Frontend for Runners Gait Analysis
+
+This guide provides instructions for building a React frontend that connects to the Runners Gait Analysis API.
+
+## Project Setup
+
+1. Create a new React project:
+```bash
+npx create-react-app runners-gait-dashboard
+cd runners-gait-dashboard
+```
+
+2. Install required dependencies:
+```bash
+npm install @mui/material @mui/icons-material @emotion/react @emotion/styled
+npm install axios react-router-dom react-dropzone chart.js react-chartjs-2
+```
+
+3. Configure proxy for development:
+   - Add the following to your `package.json`:
+   ```json
+   "proxy": "http://localhost:8000"
+   ```
+
+## Project Structure
+
+Create the following directory structure:
+```
+src/
+├── components/
+│   ├── Header.js
+│   ├── Footer.js
+│   ├── VideoUploader.js
+│   ├── VideoPlayer.js
+│   ├── GaitAnalysisResults.js
+│   ├── SimilarityResults.js
+│   └── StatisticsDisplay.js
+├── pages/
+│   ├── HomePage.js
+│   ├── UploadPage.js
+│   ├── AnalysisPage.js
+│   ├── ComparisonPage.js
+│   └── StatsPage.js
+├── services/
+│   └── api.js
+└── utils/
+    └── helpers.js
+```
+
+## API Integration
+
+Create a service to interact with the backend API in `src/services/api.js`:
+
+```javascript
+import axios from 'axios';
+
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:8000/api';
+
+export const uploadVideo = async (file) => {
+  const formData = new FormData();
+  formData.append('video', file);
+  
+  const response = await axios.post(`${API_URL}/process-video`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  
+  return response.data;
+};
+
+export const findSimilarGaits = async (file, topK = 5) => {
+  const formData = new FormData();
+  formData.append('video', file);
+  
+  const response = await axios.post(`${API_URL}/find-similar?top_k=${topK}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  
+  return response.data;
+};
+
+export const getVideoById = (videoId) => {
+  return `${API_URL}/videos/${videoId}`;
+};
+
+export const listVideos = async () => {
+  const response = await axios.get(`${API_URL}/videos`);
+  return response.data;
+};
+
+export const getStats = async () => {
+  const response = await axios.get(`${API_URL}/stats`);
+  return response.data;
+};
+
+export const checkHealth = async () => {
+  const response = await axios.get(`${API_URL}/health`);
+  return response.data;
+};
+```
+
+## Key Components to Implement
+
+### 1. Video Uploader Component
+
+```javascript
+// src/components/VideoUploader.js
+import React, { useCallback, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { Button, CircularProgress, Typography, Box, Alert } from '@mui/material';
+import { uploadVideo } from '../services/api';
+
+const VideoUploader = ({ onUploadSuccess }) => {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const onDrop = useCallback(async (acceptedFiles) => {
+    if (acceptedFiles.length === 0) return;
+    
+    const file = acceptedFiles[0];
+    setUploading(true);
+    setError(null);
+    
+    try {
+      const result = await uploadVideo(file);
+      onUploadSuccess(result);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error uploading video');
+    } finally {
+      setUploading(false);
+    }
+  }, [onUploadSuccess]);
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'video/mp4': ['.mp4'],
+      'video/quicktime': ['.mov'],
+      'video/x-msvideo': ['.avi']
+    },
+    maxFiles: 1
+  });
+  
+  return (
+    <Box sx={{ width: '100%', maxWidth: 600, mx: 'auto', my: 4 }}>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      
+      <Box 
+        {...getRootProps()} 
+        sx={{
+          border: '2px dashed #ccc',
+          borderRadius: 2,
+          p: 4,
+          textAlign: 'center',
+          cursor: 'pointer',
+          bgcolor: isDragActive ? 'rgba(0, 0, 0, 0.05)' : 'transparent',
+          '&:hover': {
+            bgcolor: 'rgba(0, 0, 0, 0.05)'
+          }
+        }}
+      >
+        <input {...getInputProps()} />
+        
+        {uploading ? (
+          <CircularProgress />
+        ) : (
+          <>
+            <Typography variant="h6" gutterBottom>
+              {isDragActive ? 'Drop the video here' : 'Drag & drop a video file here'}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              Or click to select a file
+            </Typography>
+            <Typography variant="caption" color="textSecondary">
+              Supported formats: MP4, MOV, AVI
+            </Typography>
+          </>
+        )}
+      </Box>
+      
+      <Button 
+        variant="contained" 
+        color="primary" 
+        sx={{ mt: 2 }}
+        disabled={uploading}
+        onClick={() => document.getElementById('fileInput').click()}
+      >
+        Select Video
+      </Button>
+    </Box>
+  );
+};
+
+export default VideoUploader;
+```
+
+### 2. Analysis Results Component
+
+```javascript
+// src/components/GaitAnalysisResults.js
+import React from 'react';
+import { Box, Card, CardContent, Typography, Grid } from '@mui/material';
+import VideoPlayer from './VideoPlayer';
+
+const GaitAnalysisResults = ({ videoId, metadata }) => {
+  return (
+    <Box sx={{ my: 4 }}>
+      <Typography variant="h5" gutterBottom>
+        Gait Analysis Results
+      </Typography>
+      
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <VideoPlayer videoId={videoId} />
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Video Information
+              </Typography>
+              
+              <Typography variant="body1">
+                <strong>Video ID:</strong> {videoId}
+              </Typography>
+              
+              {metadata && (
+                <>
+                  <Typography variant="body1">
+                    <strong>Original Filename:</strong> {metadata.source_video}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>FPS:</strong> {metadata.fps}
+                  </Typography>
+                  <Typography variant="body1">
+                    <strong>Frame Count:</strong> {metadata.frame_count}
+                  </Typography>
+                  {metadata.upload_date && (
+                    <Typography variant="body1">
+                      <strong>Upload Date:</strong> {new Date(metadata.upload_date).toLocaleString()}
+                    </Typography>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+export default GaitAnalysisResults;
+```
+
+## Main Pages to Implement
+
+### 1. Upload Page
+
+```javascript
+// src/pages/UploadPage.js
+import React, { useState } from 'react';
+import { Container, Typography, Box, Stepper, Step, StepLabel, Button } from '@mui/material';
+import VideoUploader from '../components/VideoUploader';
+import GaitAnalysisResults from '../components/GaitAnalysisResults';
+
+const steps = ['Upload Video', 'Processing', 'Results'];
+
+const UploadPage = () => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [uploadResult, setUploadResult] = useState(null);
+  
+  const handleUploadSuccess = (result) => {
+    setUploadResult(result);
+    setActiveStep(2); // Skip to results
+  };
+  
+  return (
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          Analyze Running Gait
+        </Typography>
+        
+        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        
+        {activeStep === 0 && (
+          <VideoUploader onUploadSuccess={handleUploadSuccess} />
+        )}
+        
+        {activeStep === 2 && uploadResult && (
+          <GaitAnalysisResults 
+            videoId={uploadResult.video_id} 
+            metadata={{ 
+              source_video: uploadResult.video_id + '.mp4',
+              fps: 30, // Placeholder
+              frame_count: 300, // Placeholder
+              upload_date: new Date().toISOString()
+            }} 
+          />
+        )}
+      </Box>
+    </Container>
+  );
+};
+
+export default UploadPage;
+```
+
+### 2. Comparison Page
+
+```javascript
+// src/pages/ComparisonPage.js
+import React, { useState } from 'react';
+import { Container, Typography, Box, Grid, Card, CardContent, Button } from '@mui/material';
+import VideoUploader from '../components/VideoUploader';
+import { findSimilarGaits } from '../services/api';
+import VideoPlayer from '../components/VideoPlayer';
+
+const ComparisonPage = () => {
+  const [comparing, setComparing] = useState(false);
+  const [queryVideo, setQueryVideo] = useState(null);
+  const [similarVideos, setSimilarVideos] = useState([]);
+  const [error, setError] = useState(null);
+  
+  const handleVideoUpload = async (file) => {
+    setComparing(true);
+    setError(null);
+    
+    try {
+      const result = await findSimilarGaits(file);
+      setQueryVideo({
+        id: result.query_id,
+        file
+      });
+      setSimilarVideos(result.matches);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error finding similar gaits');
+    } finally {
+      setComparing(false);
+    }
+  };
+  
+  return (
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          Compare Running Gaits
+        </Typography>
+        
+        <Typography variant="body1" paragraph align="center">
+          Upload a video to find runners with similar gait patterns
+        </Typography>
+        
+        {!queryVideo ? (
+          <VideoUploader onUploadSuccess={handleVideoUpload} />
+        ) : (
+          <>
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h5" gutterBottom>
+                Your Video
+              </Typography>
+              <VideoPlayer videoId={queryVideo.id} />
+              
+              <Button 
+                variant="outlined" 
+                sx={{ mt: 2 }}
+                onClick={() => {
+                  setQueryVideo(null);
+                  setSimilarVideos([]);
+                }}
+              >
+                Upload Different Video
+              </Button>
+            </Box>
+            
+            <Typography variant="h5" gutterBottom>
+              Similar Gait Patterns
+            </Typography>
+            
+            {similarVideos.length > 0 ? (
+              <Grid container spacing={3}>
+                {similarVideos.map((video) => (
+                  <Grid item xs={12} sm={6} md={4} key={video.id}>
+                    <Card>
+                      <VideoPlayer videoId={video.id} height={200} />
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          Similarity: {(video.score * 100).toFixed(1)}%
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          Video ID: {video.id}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Typography variant="body1" color="textSecondary" align="center">
+                No similar videos found
+              </Typography>
+            )}
+          </>
+        )}
+      </Box>
+    </Container>
+  );
+};
+
+export default ComparisonPage;
+```
+
+## Routing Setup
+
+```javascript
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+import Header from './components/Header';
+import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
+import UploadPage from './pages/UploadPage';
+import ComparisonPage from './pages/ComparisonPage';
+import StatsPage from './pages/StatsPage';
+import AnalysisPage from './pages/AnalysisPage';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+  },
+});
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <Header />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/analysis/:videoId" element={<AnalysisPage />} />
+          <Route path="/compare" element={<ComparisonPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+        </Routes>
+        <Footer />
+      </Router>
+    </ThemeProvider>
+  );
+}
+
+export default App;
+```
+
+## Development Workflow
+
+1. Start the backend API server:
+```bash
+cd Runners-gait-analysis/gait_analysis_app
+python api.py
+```
+
+2. In a separate terminal, start the React development server:
+```bash
+cd runners-gait-dashboard
+npm start
+```
+
+3. Access the application at http://localhost:3000
+
+## Building for Production
+
+1. Build the React application:
+```bash
+npm run build
+```
+
+2. To serve the React app from the FastAPI backend:
+   - Copy the build folder to the FastAPI project
+   - Uncomment the static files mount in api.py:
+   ```python
+   app.mount("/", StaticFiles(directory="../web-dashboard/build", html=True), name="static")
+   ```
+
+## Additional Features to Consider
+
+1. **User Authentication**: Add login/registration to track user-specific videos
+2. **Video Annotations**: Allow marking specific frames or adding comments
+3. **Advanced Visualizations**: Add pose skeleton overlays on videos
+4. **Downloadable Reports**: Generate PDF reports of analysis results
+5. **Batch Processing**: Upload and analyze multiple videos at once
