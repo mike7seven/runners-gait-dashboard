@@ -1,12 +1,23 @@
 import React from 'react';
 import { Container, Typography, Box, Button, Grid, Card, CardContent } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { Upload, BarChart2, GitCompare, Play } from 'lucide-react';
+import { Upload, BarChart2, GitCompare } from 'lucide-react';
+import runnerIcon from '../assets/1c88446a-0293-4620-8c8d-64474e1b6a90.webp';
 
 const HomePage = () => {
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4, textAlign: 'center' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <img 
+            src={runnerIcon} 
+            alt="Runner" 
+            style={{ 
+              height: '80px', 
+              width: 'auto'
+            }} 
+          />
+        </Box>
         <Typography variant="h3" component="h1" gutterBottom>
           Runners Gait Analysis
         </Typography>
