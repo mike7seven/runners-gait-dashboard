@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Typography, Box, Grid, Card, CardContent, Button } from '@mui/material';
+import { Container, Typography, Box, Button } from '@mui/material';
 import VideoUploader from '../components/VideoUploader';
 import { findSimilarGaits } from '../services/api';
 import VideoPlayer from '../components/VideoPlayer';
+import SimilarityResults from '../components/SimilarityResults';
 
 const ComparisonPage = () => {
   const [comparing, setComparing] = useState(false);
@@ -65,29 +66,10 @@ const ComparisonPage = () => {
               Similar Gait Patterns
             </Typography>
             
-            {similarVideos.length > 0 ? (
-              <Grid container spacing={3}>
-                {similarVideos.map((video) => (
-                  <Grid item xs={12} sm={6} md={4} key={video.id}>
-                    <Card>
-                      <VideoPlayer videoId={video.id} height={200} />
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                          Similarity: {(video.score * 100).toFixed(1)}%
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          Video ID: {video.id}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              <Typography variant="body1" color="textSecondary" align="center">
-                No similar videos found
-              </Typography>
-            )}
+            <SimilarityResults 
+              queryVideo={queryVideo} 
+              similarVideos={similarVideos} 
+            />
           </>
         )}
       </Box>
