@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button, CircularProgress, Typography, Box, Alert } from '@mui/material';
 import { uploadVideo } from '../services/api';
+import { Upload, Film, FileVideo } from 'lucide-react';
 
 const VideoUploader = ({ onUploadSuccess }) => {
   const [uploading, setUploading] = useState(false);
@@ -58,6 +59,13 @@ const VideoUploader = ({ onUploadSuccess }) => {
           <CircularProgress />
         ) : (
           <>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              {isDragActive ? (
+                <FileVideo size={48} color="#1976d2" />
+              ) : (
+                <Upload size={48} color="#1976d2" />
+              )}
+            </Box>
             <Typography variant="h6" gutterBottom>
               {isDragActive ? 'Drop the video here' : 'Drag & drop a video file here'}
             </Typography>
@@ -77,6 +85,7 @@ const VideoUploader = ({ onUploadSuccess }) => {
         sx={{ mt: 2 }}
         disabled={uploading}
         onClick={() => document.getElementById('fileInput').click()}
+        startIcon={<Film size={18} />}
       >
         Select Video
       </Button>

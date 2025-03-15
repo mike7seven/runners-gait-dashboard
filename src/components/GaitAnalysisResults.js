@@ -1,11 +1,13 @@
 import React from 'react';
-import { Box, Card, CardContent, Typography, Grid } from '@mui/material';
+import { Box, Card, CardContent, Typography, Grid, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import VideoPlayer from './VideoPlayer';
+import { FileVideo, Clock, Hash, Calendar, Info } from 'lucide-react';
 
 const GaitAnalysisResults = ({ videoId, metadata }) => {
   return (
     <Box sx={{ my: 4 }}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Info size={24} color="#1976d2" />
         Gait Analysis Results
       </Typography>
       
@@ -17,32 +19,68 @@ const GaitAnalysisResults = ({ videoId, metadata }) => {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FileVideo size={20} color="#1976d2" />
                 Video Information
               </Typography>
               
-              <Typography variant="body1">
-                <strong>Video ID:</strong> {videoId}
-              </Typography>
-              
-              {metadata && (
-                <>
-                  <Typography variant="body1">
-                    <strong>Original Filename:</strong> {metadata.source_video}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>FPS:</strong> {metadata.fps}
-                  </Typography>
-                  <Typography variant="body1">
-                    <strong>Frame Count:</strong> {metadata.frame_count}
-                  </Typography>
-                  {metadata.upload_date && (
-                    <Typography variant="body1">
-                      <strong>Upload Date:</strong> {new Date(metadata.upload_date).toLocaleString()}
-                    </Typography>
-                  )}
-                </>
-              )}
+              <List dense>
+                <ListItem>
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Hash size={18} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary="Video ID" 
+                    secondary={videoId} 
+                  />
+                </ListItem>
+                
+                {metadata && (
+                  <>
+                    <ListItem>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <FileVideo size={18} />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary="Original Filename" 
+                        secondary={metadata.source_video} 
+                      />
+                    </ListItem>
+                    
+                    <ListItem>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <Clock size={18} />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary="FPS" 
+                        secondary={metadata.fps} 
+                      />
+                    </ListItem>
+                    
+                    <ListItem>
+                      <ListItemIcon sx={{ minWidth: 36 }}>
+                        <Hash size={18} />
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary="Frame Count" 
+                        secondary={metadata.frame_count} 
+                      />
+                    </ListItem>
+                    
+                    {metadata.upload_date && (
+                      <ListItem>
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          <Calendar size={18} />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary="Upload Date" 
+                          secondary={new Date(metadata.upload_date).toLocaleString()} 
+                        />
+                      </ListItem>
+                    )}
+                  </>
+                )}
+              </List>
             </CardContent>
           </Card>
         </Grid>

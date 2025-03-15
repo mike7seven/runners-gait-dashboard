@@ -1,6 +1,7 @@
 import React from 'react';
-import { Container, Typography, Box, Button, Grid, Card, CardContent, CardMedia } from '@mui/material';
+import { Container, Typography, Box, Button, Grid, Card, CardContent } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
+import { Upload, BarChart2, GitCompare, Play } from 'lucide-react';
 
 const HomePage = () => {
   return (
@@ -22,6 +23,7 @@ const HomePage = () => {
             component={RouterLink} 
             to="/upload"
             sx={{ mx: 1 }}
+            startIcon={<Upload size={20} />}
           >
             Upload Video
           </Button>
@@ -32,6 +34,7 @@ const HomePage = () => {
             component={RouterLink} 
             to="/compare"
             sx={{ mx: 1 }}
+            startIcon={<GitCompare size={20} />}
           >
             Compare Gaits
           </Button>
@@ -39,14 +42,11 @@ const HomePage = () => {
         
         <Grid container spacing={4}>
           <Grid item xs={12} md={4}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="https://via.placeholder.com/300x140?text=Upload"
-                alt="Upload"
-              />
-              <CardContent>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                <Upload size={48} color="#1976d2" />
+              </Box>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">
                   Upload
                 </Typography>
@@ -58,14 +58,11 @@ const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={4}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="https://via.placeholder.com/300x140?text=Analyze"
-                alt="Analyze"
-              />
-              <CardContent>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                <BarChart2 size={48} color="#1976d2" />
+              </Box>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">
                   Analyze
                 </Typography>
@@ -77,14 +74,11 @@ const HomePage = () => {
           </Grid>
           
           <Grid item xs={12} md={4}>
-            <Card>
-              <CardMedia
-                component="img"
-                height="140"
-                image="https://via.placeholder.com/300x140?text=Compare"
-                alt="Compare"
-              />
-              <CardContent>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+                <GitCompare size={48} color="#1976d2" />
+              </Box>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography gutterBottom variant="h5" component="div">
                   Compare
                 </Typography>
