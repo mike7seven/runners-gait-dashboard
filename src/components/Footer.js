@@ -1,13 +1,13 @@
 import React from 'react';
 import { Box, Typography, Container, Link, Stack } from '@mui/material';
-import { Github, Heart, Running } from 'lucide-react';
+import { Github, Heart, Activity } from 'lucide-react';
 
 const Footer = () => {
   return (
     <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: (theme) => theme.palette.grey[200] }}>
       <Container maxWidth="lg">
         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ mb: 2 }}>
-          <Running size={20} />
+          <Activity size={20} />
           <Typography variant="body1" color="text.primary" align="center">
             Runners Gait Analysis
           </Typography>

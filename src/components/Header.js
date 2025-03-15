@@ -1,7 +1,7 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import { Home, Upload, GitCompare, BarChart2, Running } from 'lucide-react';
+import { Home, Upload, GitCompare, BarChart2, Activity } from 'lucide-react';
 
 const Header = () => {
   return (
@@ -20,7 +20,7 @@ const Header = () => {
             gap: 1
           }}
         >
-          <Running size={24} />
+          <Activity size={24} />
           Runners Gait Analysis
         </Typography>
         <Box>
